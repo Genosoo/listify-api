@@ -7,7 +7,10 @@ router.post('/register', register);
 router.post('/login', login);
 router.post('/logout', logout);
 router.get('/protected', protect, (req, res) => {
-  res.status(200).send('Protected content');
+  res.status(200).json({
+    message: 'Protected Access!',
+    role: res.locals.user.role // Include user role in response
+});
 });
 
 export default router;

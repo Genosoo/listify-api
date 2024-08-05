@@ -5,6 +5,7 @@ import cors from 'cors';
 import authRoutes from './routes/auth.routes';
 import userRoutes from './routes/user.routes';
 import todoRoutes from './routes/todo.routes';
+import adminRoutes from './routes/admin.routes';
 import { MONGODBURL, PORT } from './config/config';
 
 const app = express();
@@ -16,6 +17,7 @@ app.use(cors({ origin: 'http://localhost:5173/', credentials: true }));
 app.use('/api/auth', authRoutes);
 app.use('/api', userRoutes);
 app.use('/api', todoRoutes);
+app.use('/api', adminRoutes)
 
 
 mongoose.connect(MONGODBURL)

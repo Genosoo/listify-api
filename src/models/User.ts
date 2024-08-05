@@ -27,13 +27,17 @@ const UserSchema: Schema = new Schema({
         trim: true,
         minlength: 1,
         maxlength: 225,
-        unique: true,
         lowercase: true
     },
     password: {
         type: String,
         required: true,
         minlength: 8
+    },
+    role: {
+        type: String,
+        enum: ['Admin', 'User'],
+        default: 'User'
     }
 }, { timestamps: true });
 

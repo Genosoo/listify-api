@@ -7,9 +7,9 @@ import { SECRET_KEY, NODE_ENV } from "../config/config";
 
 export const register = async (req: Request, res: Response) => {
     try {
-        const { username, email, password } = req.body;
+        const { username, email, password, role } = req.body;
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ username, email, password: hashedPassword });
+        const user = new User({ username, email, role, password: hashedPassword });
         await user.save();
         res.status(201).json({ message: 'User registered successfully' });
     } catch (error) {
@@ -33,10 +33,10 @@ export const login = async (req: Request, res: Response) => {
            return res.status(400).send({ message: 'Invalid credentials' });
        }
 
-       const token = jwt.sign({ id: user._id }, SECRET_KEY, { expiresIn: '1h' });
+       const token = jwt.sign({ id: user._id, role: user.role }, SECRET_KEY, { expiresIn: '1h' });
 
        res.cookie('token', token, { httpOnly: true, secure: true,  sameSite: 'strict', maxAge: 3600000 });
-       res.status(200).json({ message: 'Login successful' });
+       res.status(200).json({ message: 'Login successful', role: user.role  });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -53,12 +53,20 @@ export const protect = (req: Request, res: Response, next: Function) => {
     try {
         const decoded = jwt.verify(token, SECRET_KEY);
         req.user = decoded as IUser;
+
+         // Pass user role and ID for further use in routes
+         res.locals.user = {
+            id: req.user.id,
+            role: req.user.role
+        };
         next();
     } catch (error) {
         console.error(error);
         res.status(401).send({ message: 'Unauthorized' });
     }
 }
+
+
 
 
 export const logout = (req: Request, res: Response) => {

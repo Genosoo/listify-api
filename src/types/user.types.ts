@@ -5,6 +5,7 @@ export interface IUser extends Document {
     username: string;
     firstname: string;
     lastname: string;
+    role: 'Admin' | 'User';
 }
 
 declare module 'express-serve-static-core' {

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from 'bcryptjs';
 import User from "../models/User";
-import { userSchema } from '../validation/user.validation'; // Adjust the path as needed
+import { updateUserSchema, userSchema } from '../validation/user.validation'; // Adjust the path as needed
 
 export const getUsers = async (req: Request, res: Response) => {
     try {
@@ -19,7 +19,7 @@ export const createUser = async (req: Request, res: Response) => {
         if (error) {
             return res.status(400).send({ message: error.message });
         }
-        const { username, email, firstname, lastname, password } = req.body;
+        const { username, email, firstname, lastname, role, password } = req.body;
         
          // Check if user with the same username or email already exists
         const existingUser = await User.findOne({ $or: [{ username }, { email }] });
@@ -32,7 +32,7 @@ export const createUser = async (req: Request, res: Response) => {
         }
         
         const hashedPassword = await bcrypt.hash(password, 10);
-        const user = new User({ username, email, firstname, lastname, password: hashedPassword });
+        const user = new User({ username, email, firstname, lastname, role, password: hashedPassword });
         await user.save();
 
         res.status(201).json({ message: 'User created successfully' });
@@ -46,10 +46,10 @@ export const createUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { username, email, firstname, lastname, password } = req.body;
+        const { username, email, firstname, lastname, password, role } = req.body;
 
         // Validate the request body
-        const { error } = userSchema.validate({ username, email, firstname, lastname, password });
+        const { error } = updateUserSchema.validate({ username, email, firstname, lastname, password, role});
         if (error) {
             return res.status(400).send({ message: error.message });
         }
@@ -60,20 +60,6 @@ export const updateUser = async (req: Request, res: Response) => {
             return res.status(404).json({ message: 'User not found' });
         }
 
-        // Check if username or email is being updated and if they already exist
-        const existingUser = await User.findOne({
-            $or: [
-                { username, _id: { $ne: id } },
-                { email, _id: { $ne: id } }
-            ]
-        });
-        if (existingUser) {
-            return res.status(400).json({
-                message: existingUser.username === username
-                    ? 'Username already exists'
-                    : 'Email already exists'
-            });
-        }
 
         // Update user details
         if (password) {
@@ -84,6 +70,7 @@ export const updateUser = async (req: Request, res: Response) => {
         user.email = email || user.email;
         user.firstname = firstname || user.firstname;
         user.lastname = lastname || user.lastname;
+        user.role = role || user.role;
 
         await user.save();
 
